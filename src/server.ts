@@ -295,6 +295,15 @@ const httpServer = createServer(async (req, res) => {
     return;
   }
 
+  
+  // OpenAI domain verification
+  if (req.method === "GET" && url.pathname === "/.well-known/openai-apps-challenge") {
+    res.writeHead(200, { "content-type": "text/plain" }).end(
+      process.env.OPENAI_VERIFICATION_TOKEN || "9eFu86fx2LtAH4qDhtfiC-vcQy70hS8V-tDekajAXac"
+    );
+    return;
+  }
+
   // MCP endpoint
   const MCP_METHODS = new Set(["POST", "GET", "DELETE"]);
   if (url.pathname === MCP_PATH && req.method && MCP_METHODS.has(req.method)) {
