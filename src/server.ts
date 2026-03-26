@@ -12,7 +12,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { z } from "zod";
 import axios from "axios";
 
-// ââ Constants ââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Constantes ──────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -23,13 +23,13 @@ const LP_HEADERS = {
   "lp-origin": "https://www.legalplace.fr/projet/creation-sasu-wf",
 };
 
-// ââ Load widget HTML âââââââââââââââââââââââââââââââââââââââ
+// ── Chargement du widget HTML ───────────────────────────────
 const widgetHtml = readFileSync(
   join(__dirname, "..", "public", "checkout-widget.html"),
   "utf8"
 );
 
-// ââ LegalPlace API helper ââââââââââââââââââââââââââââââââââ
+// ── Helper API LegalPlace ───────────────────────────────────
 async function createLegalPlaceInstance(
   slug: string,
   email: string,
@@ -53,7 +53,7 @@ async function createLegalPlaceInstance(
   );
 
   if (data.status !== "SUCCESS" || !data.uniqid) {
-    throw new Error("LegalPlace did not return an instance ID");
+    throw new Error("LegalPlace n'a pas retourné d'identifiant d'instance");
   }
 
   const encodedEmail = encodeURIComponent(email.trim());
@@ -62,14 +62,14 @@ async function createLegalPlaceInstance(
   return { uniqid: data.uniqid, checkoutUrl };
 }
 
-// ââ MCP Server factory âââââââââââââââââââââââââââââââââââââ
+// ── Fabrique du serveur MCP ─────────────────────────────────
 function createMcpServer() {
   const server = new McpServer({
     name: "legalplace-creation",
-    version: "1.0.0",
+    version: "1.1.0",
   });
 
-  // Register the checkout widget resource
+  // Enregistrer le widget checkout
   registerAppResource(
     server,
     "checkout-widget",
@@ -86,21 +86,248 @@ function createMcpServer() {
     })
   );
 
-  // ââ Tool: Create Micro-Entreprise Checkout âââââââââââââââ
+  // ── Outil : Aide au choix du statut juridique ─────────────
+  registerAppTool(
+    server,
+    "choix_statut_juridique",
+    {
+      title: "Choisir son statut juridique",
+      description:
+        "Analyse la situation de l'utilisateur et recommande le statut juridique le plus adapté (micro-entreprise, EI, EURL, SASU, SARL, SAS). Utilise cet outil quand l'utilisateur hésite sur son statut ou demande de l'aide pour choisir. Pose les questions nécessaires pour comprendre sa situation avant d'appeler cet outil.",
+      inputSchema: {
+        activite: z.string().describe("Type d'activité envisagée"),
+        seul_ou_associes: z
+          .enum(["seul", "plusieurs"])
+          .describe("L'utilisateur entreprend seul ou avec des associés"),
+        chiffre_affaires_estime: z
+          .enum(["moins_de_77700", "entre_77700_et_300000", "plus_de_300000"])
+          .describe("Tranche de chiffre d'affaires annuel estimé"),
+        protection_patrimoine: z
+          .boolean()
+          .describe("Souhaite protéger son patrimoine personnel"),
+        besoin_tva: z
+          .boolean()
+          .describe("A besoin de récupérer la TVA sur ses achats"),
+        charges_importantes: z
+          .boolean()
+          .describe("A des charges importantes (loyer, matériel, salariés)"),
+        levee_de_fonds: z
+          .boolean()
+          .describe("Prévoit de lever des fonds auprès d'investisseurs"),
+        autres_revenus: z
+          .string()
+          .optional()
+          .describe("Autres sources de revenus (salarié, retraité, etc.)"),
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        openWorldHint: false,
+      },
+      _meta: {
+        "openai/toolInvocation/invoking":
+          "Analyse de votre situation en cours...",
+        "openai/toolInvocation/invoked":
+          "Voici notre recommandation de statut juridique !",
+      },
+    },
+    async (args) => {
+      const a = args as any;
+
+      let statut_recommande = "";
+      let explication = "";
+      let avantages: string[] = [];
+      let inconvenients: string[] = [];
+      let alternatives: string[] = [];
+      let action_suivante = "";
+
+      if (a.seul_ou_associes === "plusieurs") {
+        if (a.levee_de_fonds) {
+          statut_recommande = "SAS (Société par Actions Simplifiée)";
+          explication =
+            "Vous êtes plusieurs et prévoyez de lever des fonds : la SAS offre la flexibilité idéale pour accueillir des investisseurs.";
+          avantages = [
+            "Grande flexibilité dans la rédaction des statuts",
+            "Facilité pour faire entrer des investisseurs",
+            "Responsabilité limitée aux apports",
+            "Pas de capital social minimum",
+          ];
+          inconvenients = [
+            "Charges sociales élevées sur la rémunération du président",
+            "Formalisme de création plus lourd",
+            "Coûts de fonctionnement plus élevés",
+          ];
+          alternatives = ["SARL si vous préférez un cadre plus encadré"];
+        } else {
+          statut_recommande = "SARL (Société à Responsabilité Limitée)";
+          explication =
+            "Vous êtes plusieurs associés sans besoin de lever des fonds : la SARL offre un cadre juridique sécurisant et bien connu.";
+          avantages = [
+            "Cadre juridique très encadré et protecteur",
+            "Responsabilité limitée aux apports",
+            "Régime social du gérant majoritaire avantageux",
+            "Idéal pour les activités familiales",
+          ];
+          inconvenients = [
+            "Moins de flexibilité que la SAS",
+            "Cession de parts plus contraignante",
+          ];
+          alternatives = [
+            "SAS si vous voulez plus de flexibilité dans les statuts",
+          ];
+        }
+      } else {
+        // Seul
+        if (
+          a.chiffre_affaires_estime === "moins_de_77700" &&
+          !a.besoin_tva &&
+          !a.charges_importantes &&
+          !a.levee_de_fonds
+        ) {
+          statut_recommande = "Micro-entreprise (auto-entrepreneur)";
+          explication =
+            "Votre chiffre d'affaires est sous les plafonds, vous n'avez pas de charges importantes et n'avez pas besoin de TVA : la micro-entreprise est le choix le plus simple et économique.";
+          avantages = [
+            "Création gratuite et immédiate",
+            "Comptabilité ultra-simplifiée",
+            "Charges sociales proportionnelles au CA",
+            "Franchise de TVA",
+            "Pas de bilan annuel",
+          ];
+          inconvenients = [
+            "Impossible de déduire les charges réelles",
+            "Plafonds de chiffre d'affaires",
+            "Pas de récupération de TVA",
+          ];
+          alternatives = [
+            "EI si vous dépassez les plafonds",
+            "SASU si vous voulez optimiser votre rémunération",
+          ];
+          action_suivante = "create_micro_entreprise_checkout";
+        } else if (
+          a.protection_patrimoine &&
+          (a.levee_de_fonds ||
+            a.chiffre_affaires_estime === "plus_de_300000")
+        ) {
+          statut_recommande = "SASU (Société par Actions Simplifiée Unipersonnelle)";
+          explication =
+            "Vous êtes seul, souhaitez protéger votre patrimoine et avez un CA important ou prévoyez de lever des fonds : la SASU est idéale pour optimiser votre rémunération et accueillir des investisseurs.";
+          avantages = [
+            "Responsabilité limitée aux apports",
+            "Optimisation rémunération/dividendes",
+            "Facilité pour faire entrer des investisseurs",
+            "Statut social de salarié (meilleure protection)",
+            "Crédibilité auprès des partenaires",
+          ];
+          inconvenients = [
+            "Charges sociales plus élevées qu'en EURL",
+            "Formalisme de création",
+            "Coûts de fonctionnement",
+          ];
+          alternatives = [
+            "EURL si vous n'avez pas besoin d'investisseurs",
+          ];
+          action_suivante = "create_sasu_checkout";
+        } else if (a.protection_patrimoine) {
+          statut_recommande = "EURL (Entreprise Unipersonnelle à Responsabilité Limitée)";
+          explication =
+            "Vous êtes seul et souhaitez protéger votre patrimoine avec un CA moyen : l'EURL offre la protection d'une société avec une gestion simplifiée.";
+          avantages = [
+            "Responsabilité limitée aux apports",
+            "Possibilité d'opter pour l'IS",
+            "Régime social TNS (moins cher)",
+            "Déduction des charges réelles",
+          ];
+          inconvenients = [
+            "Formalisme de création",
+            "Comptabilité complète obligatoire",
+          ];
+          alternatives = [
+            "SASU si vous préférez le statut de salarié",
+            "Micro-entreprise si votre CA reste faible",
+          ];
+        } else if (a.charges_importantes) {
+          statut_recommande = "EI (Entreprise Individuelle)";
+          explication =
+            "Vous êtes seul avec des charges importantes à déduire mais ne ressentez pas le besoin de protéger votre patrimoine via une société : l'EI au régime réel vous permet de déduire vos charges.";
+          avantages = [
+            "Création simple et rapide",
+            "Déduction des charges réelles",
+            "Pas de capital social",
+            "Comptabilité simplifiée par rapport à une société",
+          ];
+          inconvenients = [
+            "Responsabilité illimitée (patrimoine personnel exposé)",
+            "Moins de crédibilité qu'une société",
+          ];
+          alternatives = [
+            "EURL pour protéger votre patrimoine",
+            "Micro-entreprise si vos charges restent faibles",
+          ];
+        } else {
+          statut_recommande = "Micro-entreprise (auto-entrepreneur)";
+          explication =
+            "Au vu de votre situation, la micro-entreprise reste le choix le plus simple pour démarrer. Vous pourrez toujours évoluer vers un autre statut plus tard.";
+          avantages = [
+            "Création gratuite et immédiate",
+            "Comptabilité ultra-simplifiée",
+            "Charges sociales proportionnelles au CA",
+          ];
+          inconvenients = [
+            "Plafonds de chiffre d'affaires",
+            "Pas de déduction des charges réelles",
+          ];
+          alternatives = [
+            "EI au régime réel si vos charges augmentent",
+            "SASU si vous voulez vous verser des dividendes",
+          ];
+          action_suivante = "create_micro_entreprise_checkout";
+        }
+      }
+
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `**Statut recommandé : ${statut_recommande}**\n\n${explication}\n\n**Avantages :**\n${avantages.map((a) => `- ${a}`).join("\n")}\n\n**Inconvénients :**\n${inconvenients.map((i) => `- ${i}`).join("\n")}\n\n**Alternatives à considérer :**\n${alternatives.map((a) => `- ${a}`).join("\n")}${action_suivante ? `\n\nSi ce statut vous convient, je peux lancer la création immédiatement via LegalPlace. Il me faudra juste votre email.` : `\n\nPour ce statut, je vous recommande de consulter un expert-comptable pour finaliser votre choix et vous accompagner dans les démarches.`}`,
+          },
+        ],
+        structuredContent: {
+          statut_recommande,
+          explication,
+          avantages,
+          inconvenients,
+          alternatives,
+          action_suivante,
+          situation: {
+            activite: a.activite,
+            seul_ou_associes: a.seul_ou_associes,
+            chiffre_affaires_estime: a.chiffre_affaires_estime,
+            protection_patrimoine: a.protection_patrimoine,
+            besoin_tva: a.besoin_tva,
+            charges_importantes: a.charges_importantes,
+            levee_de_fonds: a.levee_de_fonds,
+          },
+        },
+      };
+    }
+  );
+
+  // ── Outil : Créer une micro-entreprise ────────────────────
   registerAppTool(
     server,
     "create_micro_entreprise_checkout",
     {
-      title: "Creer micro-entreprise",
+      title: "Créer une micro-entreprise",
       description:
-        "Cree une instance LegalPlace pour la creation d'une micro-entreprise et retourne le lien de checkout. Utilise cet outil quand l'utilisateur veut creer sa micro-entreprise et a fourni son email.",
+        "Crée une instance LegalPlace pour la création d'une micro-entreprise et retourne le lien de checkout pour finaliser le paiement. Utilise cet outil quand l'utilisateur veut créer sa micro-entreprise et a fourni son email.",
       inputSchema: {
         email: z.string().email().describe("Adresse email de l'utilisateur"),
-        phone: z.string().optional().describe("Numero de telephone"),
-        activity: z
+        telephone: z.string().optional().describe("Numéro de téléphone"),
+        activite: z
           .string()
           .optional()
-          .describe("Description de l'activite"),
+          .describe("Description de l'activité envisagée"),
       },
       annotations: {
         readOnlyHint: false,
@@ -110,9 +337,9 @@ function createMcpServer() {
       _meta: {
         ui: { resourceUri: "ui://widget/checkout.html" },
         "openai/toolInvocation/invoking":
-          "Creation de votre micro-entreprise en cours...",
+          "Création de votre micro-entreprise en cours...",
         "openai/toolInvocation/invoked":
-          "Votre lien de checkout est pret !",
+          "Votre lien de checkout est prêt !",
       },
     },
     async (args) => {
@@ -122,7 +349,7 @@ function createMcpServer() {
           content: [
             {
               type: "text" as const,
-              text: "L'email est requis pour creer votre micro-entreprise.",
+              text: "L'adresse email est requise pour créer votre micro-entreprise.",
             },
           ],
         };
@@ -140,7 +367,7 @@ function createMcpServer() {
           content: [
             {
               type: "text" as const,
-              text: `Votre lien de checkout micro-entreprise est pret : ${checkoutUrl}`,
+              text: `Votre lien de checkout micro-entreprise est prêt !\n\n👉 ${checkoutUrl}\n\nCliquez sur le lien pour choisir votre pack et finaliser la création de votre micro-entreprise avec LegalPlace.`,
             },
           ],
           structuredContent: {
@@ -148,8 +375,8 @@ function createMcpServer() {
             checkout_url: checkoutUrl,
             uniqid,
             email,
-            phone: (args as any).phone || null,
-            activity: (args as any).activity || null,
+            telephone: (args as any).telephone || null,
+            activite: (args as any).activite || null,
           },
         };
       } catch (error: any) {
@@ -161,7 +388,7 @@ function createMcpServer() {
           content: [
             {
               type: "text" as const,
-              text: `Erreur lors de la creation : ${errMsg}`,
+              text: `Erreur lors de la création : ${errMsg}`,
             },
           ],
         };
@@ -169,25 +396,25 @@ function createMcpServer() {
     }
   );
 
-  // ââ Tool: Create SASU Checkout âââââââââââââââââââââââââââ
+  // ── Outil : Créer une SASU ────────────────────────────────
   registerAppTool(
     server,
     "create_sasu_checkout",
     {
-      title: "Creer SASU",
+      title: "Créer une SASU",
       description:
-        "Cree une instance LegalPlace pour la creation d'une SASU et retourne le lien de checkout. Utilise cet outil quand l'utilisateur veut creer sa SASU et a fourni son email.",
+        "Crée une instance LegalPlace pour la création d'une SASU (Société par Actions Simplifiée Unipersonnelle) et retourne le lien de checkout pour finaliser le paiement. Utilise cet outil quand l'utilisateur veut créer sa SASU et a fourni son email.",
       inputSchema: {
         email: z.string().email().describe("Adresse email de l'utilisateur"),
-        phone: z.string().optional().describe("Numero de telephone"),
-        company_name: z
+        telephone: z.string().optional().describe("Numéro de téléphone"),
+        nom_societe: z
           .string()
           .optional()
-          .describe("Nom de la societe"),
-        activity: z
+          .describe("Nom souhaité pour la société"),
+        activite: z
           .string()
           .optional()
-          .describe("Description de l'activite"),
+          .describe("Description de l'activité de la SASU"),
       },
       annotations: {
         readOnlyHint: false,
@@ -197,8 +424,9 @@ function createMcpServer() {
       _meta: {
         ui: { resourceUri: "ui://widget/checkout.html" },
         "openai/toolInvocation/invoking":
-          "Creation de votre SASU en cours...",
-        "openai/toolInvocation/invoked": "Votre lien de checkout est pret !",
+          "Création de votre SASU en cours...",
+        "openai/toolInvocation/invoked":
+          "Votre lien de checkout est prêt !",
       },
     },
     async (args) => {
@@ -208,7 +436,7 @@ function createMcpServer() {
           content: [
             {
               type: "text" as const,
-              text: "L'email est requis pour creer votre SASU.",
+              text: "L'adresse email est requise pour créer votre SASU.",
             },
           ],
         };
@@ -226,7 +454,7 @@ function createMcpServer() {
           content: [
             {
               type: "text" as const,
-              text: `Votre lien de checkout SASU est pret : ${checkoutUrl}`,
+              text: `Votre lien de checkout SASU est prêt !\n\n👉 ${checkoutUrl}\n\nCliquez sur le lien pour choisir votre pack et finaliser la création de votre SASU avec LegalPlace.`,
             },
           ],
           structuredContent: {
@@ -234,9 +462,9 @@ function createMcpServer() {
             checkout_url: checkoutUrl,
             uniqid,
             email,
-            phone: (args as any).phone || null,
-            company_name: (args as any).company_name || null,
-            activity: (args as any).activity || null,
+            telephone: (args as any).telephone || null,
+            nom_societe: (args as any).nom_societe || null,
+            activite: (args as any).activite || null,
           },
         };
       } catch (error: any) {
@@ -248,7 +476,7 @@ function createMcpServer() {
           content: [
             {
               type: "text" as const,
-              text: `Erreur lors de la creation : ${errMsg}`,
+              text: `Erreur lors de la création : ${errMsg}`,
             },
           ],
         };
@@ -259,13 +487,13 @@ function createMcpServer() {
   return server;
 }
 
-// ââ HTTP Server ââââââââââââââââââââââââââââââââââââââââââââ
+// ── Serveur HTTP ────────────────────────────────────────────
 const port = Number(process.env.PORT ?? 8787);
 const MCP_PATH = "/mcp";
 
 const httpServer = createServer(async (req, res) => {
   if (!req.url) {
-    res.writeHead(400).end("Missing URL");
+    res.writeHead(400).end("URL manquante");
     return;
   }
 
@@ -289,22 +517,13 @@ const httpServer = createServer(async (req, res) => {
       JSON.stringify({
         status: "ok",
         service: "legalplace-creation-app",
-        version: "1.0.0",
+        version: "1.1.0",
       })
     );
     return;
   }
 
-  
-  // OpenAI domain verification
-  if (req.method === "GET" && url.pathname === "/.well-known/openai-apps-challenge") {
-    res.writeHead(200, { "content-type": "text/plain" }).end(
-      process.env.OPENAI_VERIFICATION_TOKEN || "9eFu86fx2LtAH4qDhtfiC-vcQy70hS8V-tDekajAXac"
-    );
-    return;
-  }
-
-  // MCP endpoint
+  // Point d'entrée MCP
   const MCP_METHODS = new Set(["POST", "GET", "DELETE"]);
   if (url.pathname === MCP_PATH && req.method && MCP_METHODS.has(req.method)) {
     res.setHeader("Access-Control-Allow-Origin", "*");
@@ -312,7 +531,7 @@ const httpServer = createServer(async (req, res) => {
 
     const server = createMcpServer();
     const transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: undefined, // stateless
+      sessionIdGenerator: undefined, // sans état
       enableJsonResponse: true,
     });
 
@@ -325,17 +544,17 @@ const httpServer = createServer(async (req, res) => {
       await server.connect(transport);
       await transport.handleRequest(req, res);
     } catch (error) {
-      console.error("MCP error:", error);
+      console.error("Erreur MCP:", error);
       if (!res.headersSent) {
-        res.writeHead(500).end("Internal server error");
+        res.writeHead(500).end("Erreur interne du serveur");
       }
     }
     return;
   }
 
-  res.writeHead(404).end("Not Found");
+  res.writeHead(404).end("Non trouvé");
 });
 
 httpServer.listen(port, () => {
-  console.log(`LegalPlace MCP server listening on http://localhost:${port}${MCP_PATH}`);
+  console.log(`Serveur MCP LegalPlace en écoute sur http://localhost:${port}${MCP_PATH}`);
 });
