@@ -12,7 +12,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { z } from "zod";
 import axios from "axios";
 
-// ── Constantes ──────────────────────────────────────────────
+// ── Constantes ──────────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -23,13 +23,13 @@ const LP_HEADERS = {
   "lp-origin": "https://www.legalplace.fr/projet/creation-sasu-wf",
 };
 
-// ── Chargement du widget HTML ───────────────────────────────
+// ── Chargement du widget HTML ───────────────────────────────────────
 const widgetHtml = readFileSync(
   join(__dirname, "..", "public", "checkout-widget.html"),
   "utf8"
 );
 
-// ── Helper API LegalPlace ───────────────────────────────────
+// ── Helper API LegalPlace ───────────────────────────────────────
 async function createLegalPlaceInstance(
   slug: string,
   email: string,
@@ -62,7 +62,7 @@ async function createLegalPlaceInstance(
   return { uniqid: data.uniqid, checkoutUrl };
 }
 
-// ── Fabrique du serveur MCP ─────────────────────────────────
+// ── Fabrique du serveur MCP ───────────────────────────────────────
 function createMcpServer() {
   const server = new McpServer({
     name: "legalplace-creation",
@@ -487,7 +487,7 @@ function createMcpServer() {
   return server;
 }
 
-// ── Serveur HTTP ────────────────────────────────────────────
+// ── Serveur HTTP ────────────────────────────────────────────────
 const port = Number(process.env.PORT ?? 8787);
 const MCP_PATH = "/mcp";
 
