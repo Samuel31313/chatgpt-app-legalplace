@@ -11,149 +11,75 @@
       color: #1a1a2e;
       padding: 20px;
     }
-    .container {
-      max-width: 560px;
-      margin: 0 auto;
-    }
-    .header {
-      text-align: center;
-      margin-bottom: 24px;
-    }
-    .header h1 {
-      font-size: 22px;
-      font-weight: 700;
-      color: #1a1a2e;
-      margin-bottom: 4px;
-    }
-    .header p {
-      font-size: 14px;
-      color: #6b7280;
-    }
-    .badge {
-      display: inline-block;
-      background: #e0f2fe;
-      color: #0369a1;
-      font-size: 12px;
-      font-weight: 600;
-      padding: 4px 10px;
-      border-radius: 12px;
-      margin-bottom: 12px;
-    }
+    .container { max-width: 560px; margin: 0 auto; }
+    .header { text-align: center; margin-bottom: 24px; }
+    .header h1 { font-size: 22px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+    .header p { font-size: 14px; color: #6b7280; }
+    .logo { font-size: 28px; margin-bottom: 8px; }
+    .badge { display: inline-block; background: #e0f2fe; color: #0369a1; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 12px; margin-bottom: 12px; }
     .badge.sasu { background: #f0e6ff; color: #7c3aed; }
-    .recap {
+    .badge.statut { background: #fef3c7; color: #92400e; }
+
+    /* Welcome cards */
+    .cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+    .card {
       background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 20px;
-    }
-    .recap-row {
+      border: 2px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
       display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px solid #f3f4f6;
-      font-size: 14px;
+      align-items: center;
+      gap: 16px;
     }
+    .card:hover { border-color: #2563eb; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37,99,235,0.1); }
+    .card-icon { font-size: 32px; flex-shrink: 0; }
+    .card-content { flex: 1; }
+    .card-title { font-size: 16px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+    .card-desc { font-size: 13px; color: #6b7280; line-height: 1.4; }
+    .card-arrow { color: #9ca3af; font-size: 20px; flex-shrink: 0; }
+    .card:hover .card-arrow { color: #2563eb; }
+    .card.blue:hover { border-color: #2563eb; }
+    .card.purple:hover { border-color: #7c3aed; }
+    .card.amber:hover { border-color: #d97706; }
+
+    /* Recap & packs */
+    .recap { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+    .recap-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
     .recap-row:last-child { border-bottom: none; }
     .recap-label { color: #6b7280; }
     .recap-value { font-weight: 600; color: #1a1a2e; text-align: right; max-width: 60%; word-break: break-word; }
-    .packs {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-    .pack {
-      background: white;
-      border: 2px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 16px;
-      position: relative;
-      transition: border-color 0.2s;
-    }
-    .pack.recommended {
-      border-color: #2563eb;
-    }
-    .pack-badge {
-      position: absolute;
-      top: -10px;
-      right: 16px;
-      background: #2563eb;
-      color: white;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 2px 10px;
-      border-radius: 8px;
-    }
-    .pack-name {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-    .pack-price {
-      font-size: 20px;
-      font-weight: 800;
-      color: #2563eb;
-      margin-bottom: 6px;
-    }
+    .packs { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+    .pack { background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 16px; position: relative; }
+    .pack.recommended { border-color: #2563eb; }
+    .pack-badge { position: absolute; top: -10px; right: 16px; background: #2563eb; color: white; font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 8px; }
+    .pack-name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    .pack-price { font-size: 20px; font-weight: 800; color: #2563eb; margin-bottom: 6px; }
     .pack-price.free { color: #059669; }
-    .pack-features {
-      list-style: none;
-      font-size: 13px;
-      color: #4b5563;
-    }
-    .pack-features li {
-      padding: 2px 0;
-    }
-    .pack-features li::before {
-      content: "â ";
-      color: #059669;
-      font-weight: 700;
-    }
-    .cta-btn {
-      display: block;
-      width: 100%;
-      padding: 16px;
-      background: #2563eb;
-      color: white;
-      font-size: 16px;
-      font-weight: 700;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      text-align: center;
-      text-decoration: none;
-      transition: background 0.2s;
-    }
+    .pack-features { list-style: none; font-size: 13px; color: #4b5563; }
+    .pack-features li { padding: 2px 0; }
+    .pack-features li::before { content: "\2713 "; color: #059669; font-weight: 700; }
+    .cta-btn { display: block; width: 100%; padding: 16px; background: #2563eb; color: white; font-size: 16px; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; text-align: center; text-decoration: none; transition: background 0.2s; }
     .cta-btn:hover { background: #1d4ed8; }
     .cta-btn.sasu { background: #7c3aed; }
     .cta-btn.sasu:hover { background: #6d28d9; }
-    .footer {
-      text-align: center;
-      margin-top: 16px;
-      font-size: 12px;
-      color: #9ca3af;
-    }
-    .footer img {
-      height: 20px;
-      vertical-align: middle;
-      margin-left: 4px;
-    }
-    .loading {
-      text-align: center;
-      padding: 40px;
-      color: #6b7280;
-    }
-    .spinner {
-      width: 32px;
-      height: 32px;
-      border: 3px solid #e5e7eb;
-      border-top-color: #2563eb;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 12px;
-    }
+    .footer { text-align: center; margin-top: 16px; font-size: 12px; color: #9ca3af; }
+    .loading { text-align: center; padding: 40px; color: #6b7280; }
+    .spinner { width: 32px; height: 32px; border: 3px solid #e5e7eb; border-top-color: #2563eb; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Statut recommendation */
+    .statut-result { background: white; border: 2px solid #059669; border-radius: 14px; padding: 20px; margin-bottom: 20px; }
+    .statut-name { font-size: 18px; font-weight: 800; color: #059669; margin-bottom: 8px; }
+    .statut-explication { font-size: 14px; color: #374151; line-height: 1.5; margin-bottom: 16px; }
+    .statut-section { margin-bottom: 12px; }
+    .statut-section-title { font-size: 13px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .statut-list { list-style: none; font-size: 13px; color: #4b5563; }
+    .statut-list li { padding: 3px 0; }
+    .statut-list.pros li::before { content: "\2713 "; color: #059669; font-weight: 700; }
+    .statut-list.cons li::before { content: "\2717 "; color: #dc2626; font-weight: 700; }
+    .statut-list.alt li::before { content: "\2192 "; color: #2563eb; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -165,19 +91,110 @@
   </div>
 
   <script>
-    // Listen for tool results from the MCP host
     window.addEventListener("message", (event) => {
       if (event.source !== window.parent) return;
       const msg = event.data;
       if (!msg || msg.jsonrpc !== "2.0") return;
       if (msg.method !== "ui/notifications/tool-result") return;
-
       const data = msg.params?.structuredContent;
       if (data) render(data);
     }, { passive: true });
 
+    function sendMessage(text) {
+      window.parent.postMessage({
+        jsonrpc: "2.0",
+        method: "ui/actions/send-message",
+        params: { text }
+      }, "*");
+    }
+
     function render(data) {
       const app = document.getElementById("app");
+
+      if (data.type === "bienvenue") {
+        renderWelcome(app, data);
+      } else if (data.type === "statut") {
+        renderStatut(app, data);
+      } else {
+        renderCheckout(app, data);
+      }
+    }
+
+    function renderWelcome(app, data) {
+      app.innerHTML = `
+        <div class="header">
+          <div class="logo">\u2696\uFE0F</div>
+          <h1>LegalPlace</h1>
+          <p>Cr\u00e9ation d'entreprise simplifi\u00e9e</p>
+        </div>
+        <div class="cards">
+          <div class="card blue" onclick="sendMessage('Je veux cr\u00e9er ma micro-entreprise')">
+            <div class="card-icon">\uD83D\uDE80</div>
+            <div class="card-content">
+              <div class="card-title">Cr\u00e9er ma micro-entreprise</div>
+              <div class="card-desc">Cr\u00e9ation gratuite, simple et rapide. Id\u00e9al pour d\u00e9marrer en freelance.</div>
+            </div>
+            <div class="card-arrow">\u203A</div>
+          </div>
+          <div class="card purple" onclick="sendMessage('Je veux cr\u00e9er ma SASU')">
+            <div class="card-icon">\uD83C\uDFE2</div>
+            <div class="card-content">
+              <div class="card-title">Cr\u00e9er ma SASU</div>
+              <div class="card-desc">Soci\u00e9t\u00e9 par actions simplifi\u00e9e. Protection du patrimoine et optimisation fiscale.</div>
+            </div>
+            <div class="card-arrow">\u203A</div>
+          </div>
+          <div class="card amber" onclick="sendMessage('Aide-moi \\u00e0 choisir le bon statut juridique pour mon entreprise')">
+            <div class="card-icon">\uD83E\uDD14</div>
+            <div class="card-content">
+              <div class="card-title">M'aider \u00e0 choisir mon statut</div>
+              <div class="card-desc">R\u00e9pondez \u00e0 quelques questions pour trouver le statut id\u00e9al.</div>
+            </div>
+            <div class="card-arrow">\u203A</div>
+          </div>
+        </div>
+        <div class="footer">Powered by LegalPlace</div>
+      `;
+    }
+
+    function renderStatut(app, data) {
+      const d = data;
+      const hasAction = d.action_suivante;
+      const actionLabel = d.action_suivante === "create_sasu_checkout"
+        ? "Cr\u00e9er ma SASU avec LegalPlace \u2192"
+        : "Cr\u00e9er ma micro-entreprise avec LegalPlace \u2192";
+      const actionMsg = d.action_suivante === "create_sasu_checkout"
+        ? "Je veux cr\u00e9er ma SASU"
+        : "Je veux cr\u00e9er ma micro-entreprise";
+      const ctaClass = d.action_suivante === "create_sasu_checkout" ? "cta-btn sasu" : "cta-btn";
+
+      app.innerHTML = `
+        <div class="header">
+          <span class="badge statut">Recommandation</span>
+          <h1>Votre statut id\u00e9al</h1>
+        </div>
+        <div class="statut-result">
+          <div class="statut-name">\u2705 ${d.statut_recommande}</div>
+          <div class="statut-explication">${d.explication}</div>
+          <div class="statut-section">
+            <div class="statut-section-title">Avantages</div>
+            <ul class="statut-list pros">${(d.avantages||[]).map(a => `<li>${a}</li>`).join("")}</ul>
+          </div>
+          <div class="statut-section">
+            <div class="statut-section-title">Inconv\u00e9nients</div>
+            <ul class="statut-list cons">${(d.inconvenients||[]).map(i => `<li>${i}</li>`).join("")}</ul>
+          </div>
+          <div class="statut-section">
+            <div class="statut-section-title">Alternatives</div>
+            <ul class="statut-list alt">${(d.alternatives||[]).map(a => `<li>${a}</li>`).join("")}</ul>
+          </div>
+        </div>
+        ${hasAction ? `<button class="${ctaClass}" onclick="sendMessage('${actionMsg}')">${actionLabel}</button>` : ""}
+        <div class="footer">Powered by LegalPlace</div>
+      `;
+    }
+
+    function renderCheckout(app, data) {
       const isSasu = data.type === "sasu";
       const badgeClass = isSasu ? "badge sasu" : "badge";
       const badgeText = isSasu ? "SASU" : "Micro-entreprise";
@@ -185,93 +202,37 @@
 
       let recapRows = "";
       if (data.email) recapRows += row("Email", data.email);
-      if (data.phone) recapRows += row("Telephone", data.phone);
-      if (data.activity) recapRows += row("Activite", data.activity);
-      if (data.company_name) recapRows += row("Societe", data.company_name);
+      if (data.telephone) recapRows += row("T\u00e9l\u00e9phone", data.telephone);
+      if (data.activite) recapRows += row("Activit\u00e9", data.activite);
+      if (data.nom_societe) recapRows += row("Soci\u00e9t\u00e9", data.nom_societe);
 
       const packs = isSasu ? `
         <div class="packs">
-          <div class="pack">
-            <div class="pack-name">Pack Basique</div>
-            <div class="pack-price free">0 &euro;</div>
-            <ul class="pack-features">
-              <li>Creation simple</li>
-              <li>Demarches en ligne</li>
-            </ul>
-          </div>
-          <div class="pack recommended">
-            <div class="pack-badge">Recommande</div>
-            <div class="pack-name">Pack Standard</div>
-            <div class="pack-price">99 &euro;</div>
-            <ul class="pack-features">
-              <li>Accompagnement personnalise</li>
-              <li>Redaction des statuts</li>
-              <li>Publication JAL incluse</li>
-            </ul>
-          </div>
-          <div class="pack">
-            <div class="pack-name">Pack Express 24H</div>
-            <div class="pack-price">199 &euro;</div>
-            <ul class="pack-features">
-              <li>Traitement prioritaire</li>
-              <li>Tout le Pack Standard</li>
-              <li>Immatriculation en 24h</li>
-            </ul>
-          </div>
-        </div>
-      ` : `
+          <div class="pack"><div class="pack-name">Pack Basique</div><div class="pack-price free">0 \u20AC</div><ul class="pack-features"><li>Cr\u00e9ation simple</li><li>D\u00e9marches en ligne</li></ul></div>
+          <div class="pack recommended"><div class="pack-badge">Recommand\u00e9</div><div class="pack-name">Pack Standard</div><div class="pack-price">99 \u20AC</div><ul class="pack-features"><li>Accompagnement personnalis\u00e9</li><li>R\u00e9daction des statuts</li><li>Publication JAL incluse</li></ul></div>
+          <div class="pack"><div class="pack-name">Pack Express 24H</div><div class="pack-price">199 \u20AC</div><ul class="pack-features"><li>Traitement prioritaire</li><li>Tout le Pack Standard</li><li>Immatriculation en 24h</li></ul></div>
+        </div>` : `
         <div class="packs">
-          <div class="pack">
-            <div class="pack-name">Pack Basique</div>
-            <div class="pack-price free">0 &euro;</div>
-            <ul class="pack-features">
-              <li>Creation simple</li>
-              <li>Declaration au Guichet Unique</li>
-            </ul>
-          </div>
-          <div class="pack recommended">
-            <div class="pack-badge">Recommande</div>
-            <div class="pack-name">Pack Standard</div>
-            <div class="pack-price">59 &euro;</div>
-            <ul class="pack-features">
-              <li>Accompagnement personnalise</li>
-              <li>Verification du dossier</li>
-              <li>Support prioritaire</li>
-            </ul>
-          </div>
-          <div class="pack">
-            <div class="pack-name">Pack Express</div>
-            <div class="pack-price">99 &euro;</div>
-            <ul class="pack-features">
-              <li>Traitement prioritaire</li>
-              <li>Tout le Pack Standard</li>
-              <li>Immatriculation acceleree</li>
-            </ul>
-          </div>
-        </div>
-      `;
+          <div class="pack"><div class="pack-name">Pack Basique</div><div class="pack-price free">0 \u20AC</div><ul class="pack-features"><li>Cr\u00e9ation simple</li><li>D\u00e9claration au Guichet Unique</li></ul></div>
+          <div class="pack recommended"><div class="pack-badge">Recommand\u00e9</div><div class="pack-name">Pack Standard</div><div class="pack-price">59 \u20AC</div><ul class="pack-features"><li>Accompagnement personnalis\u00e9</li><li>V\u00e9rification du dossier</li><li>Support prioritaire</li></ul></div>
+          <div class="pack"><div class="pack-name">Pack Express</div><div class="pack-price">99 \u20AC</div><ul class="pack-features"><li>Traitement prioritaire</li><li>Tout le Pack Standard</li><li>Immatriculation acc\u00e9l\u00e9r\u00e9e</li></ul></div>
+        </div>`;
 
       app.innerHTML = `
         <div class="header">
           <span class="${badgeClass}">${badgeText}</span>
-          <h1>Finalisez votre creation</h1>
-          <p>Choisissez votre pack et procedez au paiement</p>
+          <h1>Finalisez votre cr\u00e9ation</h1>
+          <p>Choisissez votre pack et proc\u00e9dez au paiement</p>
         </div>
-        <div class="recap">
-          ${recapRows}
-        </div>
+        <div class="recap">${recapRows}</div>
         ${packs}
-        <a href="${data.checkout_url}" target="_blank" rel="noopener" class="${ctaClass}">
-          Acceder au checkout LegalPlace &rarr;
-        </a>
-        <div class="footer">
-          Powered by LegalPlace
-        </div>
+        <a href="${data.checkout_url}" target="_blank" rel="noopener" class="${ctaClass}">Acc\u00e9der au checkout LegalPlace \u2192</a>
+        <div class="footer">Powered by LegalPlace</div>
       `;
     }
 
     function row(label, value) {
-      return `<div class="recap-row"><span class="recap-label">${label}</span><span class="recap-value">${value}</span></div>`;
+      return '<div class="recap-row"><span class="recap-label">' + label + '</span><span class="recap-value">' + value + '</span></div>';
     }
   </script>
 </body>
